@@ -46,7 +46,8 @@ let timestamp = 0;//Used in mute vibration functionality
 let heartRate = 0;
 let lastOutlierStatusColor = "";
 
-let myHRV = new hrv.HRV(mPBListSize, HRVListSize);
+let HRVCalc = new HRVCalc();
+//let myHRV = new hrv.HRV(mPBListSize, HRVListSize);
 
 //move to a function
 changeAlertWindowParameters(warningMessageText);
@@ -106,7 +107,7 @@ messaging.peerSocket.onmessage = evt =>
   {
     //The z-score coming in from the settings page
     let data = (JSON.parse(evt.data.newValue)).values[0].value;
-    myHRV.baseLineZScore = data;
+    HRVCalc.baseLineZScore = data;
   }
   if (evt.data.key === "alertText" ) // changing the alert message
   {
@@ -219,10 +220,10 @@ function processHeartRate()
     heartRateHandle.text = heartRate.toFixed(0);
 
     previousOutlierStatus = currentOutlierStatus;
-    currentOutlierStatus = myHRV.getLastOutlierStatus();
+    currentOutlierStatus = HRVCalc.getLastOutlierStatus();
 
     //Check for green outlier zone, & no outlier in the past two readings
-    if (previousOutlierStatus == false && currentOutlierStatus == false )
+    if (previousOutlierStatus === false && currentOutlierStatus === false )
     {
       if(!(lastOutlierStatusColor === "green"))
       {
@@ -242,7 +243,7 @@ function processHeartRate()
       ridingLineOutlier();
     }
 
-    if (myHRV.getLatestHRV() == 0)
+    if (HRVCalc.getLatestHRV() == 0)
     {
       calculatingHRVMessage();
 
@@ -281,7 +282,7 @@ function calculatingHRVMessage()
 function calculatedHRVMessage()
 {
   changeHRVLabelParameters(hrvHandle.style.fill, 60);
-  hrvHandle.text = (myHRV.getLatestHRV()).toFixed(0);
+  hrvHandle.text = (HRVCalc.getLatestHRV()).toFixed(0);
 }
 
 /**
@@ -458,7 +459,7 @@ setInterval(updateGraph, 1000);
 function updateGraph()
 {
   // Display only whole numbers
-  var data = Math.round( myHRV.getLatestHRV());
+  var data = Math.round( HRVCalc.getLatestHRV());
   if (hrvData.length >= numPoints) {
     hrvData.shift(); // removes first hrv data if we reach the limit of numPoints
     hrvDataColor.shift();
