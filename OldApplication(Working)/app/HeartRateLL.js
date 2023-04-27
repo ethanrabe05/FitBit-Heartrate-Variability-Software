@@ -8,13 +8,13 @@ class Node
     * @param {Node ref} previous 
     * @param {boolean} outlier 
     */
-    constructor(heartRate = 0, time = 0, next = null, previous = null) 
+    constructor(heartRate = 0, millisecondsPerBeat = 0, time = 0, next = null) 
     {
         this.heartRate = heartRate;
-        this.millisecondsPerBeat = 0;
+        this.millisecondsPerBeat = millisecondsPerBeat;
         this.time = time;
         this.next = next;
-        this.previous = previous;
+        //this.previous = previous;
     }
 }
 
@@ -27,14 +27,14 @@ function generateEmptyList(listSize)
 {
     let head = new Node();
     let current = head;
-    for (var i = 1; i < listSize; i++)
+    for (var i = 1; i <= listSize; i++)
     {
         current.next = new Node();
-        current.next.previous = current;
+        //current.next.previous = current;
         current = current.next;
     }
     current.next = head;
-    head.previous = current;
+    //head.previous = current;
 
     return head;
 }

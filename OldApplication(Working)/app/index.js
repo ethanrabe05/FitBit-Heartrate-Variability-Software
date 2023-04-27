@@ -10,6 +10,7 @@ import {BatteryIndicator} from "./BatteryIndicator";
 import { vibration } from "haptics";//vibration
 import {display} from "display";//(Used for screen wake)
 import { BodyPresenceSensor } from "body-presence";//Motion sensor
+//import { HRVCalc } from "./HRVCalc.js"
 import * as fs from "fs";//file system
 
 // Update the clock every minute
@@ -29,7 +30,7 @@ const batchSeconds = 5;
 const minimumOutliersBeforeAlert = 2;
 const mPBListSize = 30; //50 / batchSeconds; //seconds / batchsize to make window size. in this case 50 second window
 const HRVListSize = 30;
-const hrm = new HeartRateSensor({frequency: 20, batch: batchSeconds});
+const hrm = new HeartRateSensor({frequency: 1});
 const body = new BodyPresenceSensor();
 
 let Indicator = new BatteryIndicator();
@@ -51,27 +52,27 @@ let myHRV = new hrv.HRV(mPBListSize, HRVListSize);
 changeAlertWindowParameters(warningMessageText);
 
 var rootView = document.getElementById("root");
-rootView.addEventListener("click", (evt) => 
+rootView.addEventListener("click", (evt) =>
 {
   ToggleView();
 });
 
 if (BodyPresenceSensor) {bodyPresence();}
 
-if (HeartRateSensor) {  processHeartRate();} 
+if (HeartRateSensor) {  processHeartRate();}
 else { console.log("This device does NOT have a HeartRateSensor!");}
 
 
 // Update the clock <text> element every tick with the current time
-clock.ontick = (evt) => 
+clock.ontick = (evt) =>
 {
   let today = evt.date;
   let hours = today.getHours();
-  if (preferences.clockDisplay === "12h") 
+  if (preferences.clockDisplay === "12h")
   {
     // 12h format
     hours = hours % 12 || 12;
-  } else 
+  } else
   {
     // 24h format
     hours = util.zeroPad(hours);
@@ -83,13 +84,13 @@ clock.ontick = (evt) =>
 }
 
 //Message socket opens
-messaging.peerSocket.onopen = () => 
+messaging.peerSocket.onopen = () =>
 {
   console.log("App Socket Open");
 };
 
 //Message socket closes
-messaging.peerSocket.onclose = () => 
+messaging.peerSocket.onclose = () =>
 {
   console.log("App Socket Closed");
 };
@@ -99,34 +100,34 @@ messaging.peerSocket.onclose = () =>
  * from settings page.
  * @param {*} evt  --JSON formatted message
  */
-messaging.peerSocket.onmessage = evt => 
-{ 
+messaging.peerSocket.onmessage = evt =>
+{
   if (evt.data.key === "normalization" ) // changing the alert treshold
   {
-  //The z-score coming in from the settings page
-    let data = (JSON.parse(evt.data.newValue)).values[0].value; 
+    //The z-score coming in from the settings page
+    let data = (JSON.parse(evt.data.newValue)).values[0].value;
     myHRV.baseLineZScore = data;
   }
   if (evt.data.key === "alertText" ) // changing the alert message
+  {
+    let data = JSON.parse(evt.data.newValue).name; // new alert message
+    let newText = data;
+    if(newText.length > 80) // if the new alert message is too long
     {
-      let data = JSON.parse(evt.data.newValue).name; // new alert message          
-      let newText = data;
-      if(newText.length > 80) // if the new alert message is too long 
-        {
-          warningMessageText = "Maximum alert length is 80 characters";
-          changeAlertWindowParameters(warningMessageText);    
-          //display the change on the watch after the change
-          showAlertWindow();
-        }
-      else
-      {
-          warningMessageText = newText;
-          //set invalid message when bad input is entered. Set a check inside changeAlertWindowParameters? 347
-          changeAlertWindowParameters(warningMessageText);    
-          //display the change on the watch after the change
-          showAlertWindow();
-      }
+      warningMessageText = "Maximum alert length is 80 characters";
+      changeAlertWindowParameters(warningMessageText);
+      //display the change on the watch after the change
+      showAlertWindow();
     }
+    else
+    {
+      warningMessageText = newText;
+      //set invalid message when bad input is entered. Set a check inside changeAlertWindowParameters? 347
+      changeAlertWindowParameters(warningMessageText);
+      //display the change on the watch after the change
+      showAlertWindow();
+    }
+  }
 };
 
 function showAlertWindow()
@@ -135,14 +136,14 @@ function showAlertWindow()
   alertWindowHandle.style.opacity = 1;
   display.poke();
   setTimeout(() => {
-  alertWindowHandle.style.opacity = 0;
+    alertWindowHandle.style.opacity = 0;
   }, 10000);
 }
 
 /**
  * Toggles display of the graph/GUI on the second page
  */
-function ToggleView() 
+function ToggleView()
 {
   var view1 = document.getElementById("main");
   var view2 = document.getElementById("graph");
@@ -152,7 +153,7 @@ function ToggleView()
     view2.style.display = "inline";
   } else {
     view1.style.display = "inline";
-    view2.style.display = "none";   
+    view2.style.display = "none";
   }
 }
 
@@ -163,17 +164,17 @@ function ToggleView()
  */
 function bodyPresence()
 {
-  body.addEventListener("reading", () => 
-   {
-      if (!body.present) 
-      {
-        stopHeartRateSensor();      
-      } 
-      else
-      {
-        startHeartRateSensor();
-      }
-   });
+  body.addEventListener("reading", () =>
+  {
+    if (!body.present)
+    {
+      stopHeartRateSensor();
+    }
+    else
+    {
+      startHeartRateSensor();
+    }
+  });
   body.start();
 }
 
@@ -189,7 +190,7 @@ function startHeartRateSensor()
 
 /**
  * Called when the sensor doesn't detect motion.
- * Stops the Heart Rate sensor and updates the 
+ * Stops the Heart Rate sensor and updates the
  * status message to show an off-wrist event
  */
 function stopHeartRateSensor()
@@ -205,20 +206,16 @@ function stopHeartRateSensor()
  */
 function processHeartRate()
 {
-  hrm.addEventListener("reading", () => 
-  {  
+  hrm.addEventListener("reading", () =>
+  {
+    console.log(hrm.heartRate);
     //This timestamp is the most recent reading from the batch
-    timestamp = hrm.readings.timestamp[hrm.readings.timestamp.length-1];
+    timestamp = hrm.timestamp;
 
     //run through the batch array and average it so we have a single value
-    let overallBPM = 0;
-    for(let x = 0; x < batchSeconds; x++)//batchSeconds is default: 5
-    { 
-      overallBPM += hrm.readings.heartRate[x];
-    }
-    var avgBPM = (overallBPM/batchSeconds);
-    heartRate = avgBPM;
-    myHRV.processHRV(heartRate);
+
+    heartRate = hrm.heartRate;
+    myHRV.processHRV(heartRate, timestamp);
 
     heartRateHandle.text = heartRate.toFixed(0);
 
@@ -232,12 +229,12 @@ function processHeartRate()
       {
         greenOutlier();
       }
-    }//current outlier count >= minimum outlier count 
-    else if (outlierCounter >= minimumOutliersBeforeAlert ) 
+    }//current outlier count >= minimum outlier count
+    else if (outlierCounter >= minimumOutliersBeforeAlert )
     {
       redOutlier();
     }//outlier count < minimum outlier count
-    else if (currentOutlierStatus) 
+    else if (currentOutlierStatus)
     {
       yellowOutlier();
     }
@@ -249,7 +246,7 @@ function processHeartRate()
     if (myHRV.getLatestHRV() == 0)
     {
       calculatingHRVMessage();
-      
+
       // //Watch was reset. Pull from the running variables file for old config data.
       // if(fs.existsSync(runningVarsFileName))
       // {
@@ -259,10 +256,10 @@ function processHeartRate()
       // }
     }
     else
-    {//HRV is calculated 
+    {//HRV is calculated
       calculatedHRVMessage();//Update the UI
       // //Update running variable file
-      // let varsInJson = myHRV.getRunningValues();   
+      // let varsInJson = myHRV.getRunningValues();
       // fs.writeFileSync(runningVarsFileName, JSON.stringify(varsInJson), "json");
     }
   });
@@ -270,7 +267,7 @@ function processHeartRate()
 
 /**
  * Status message for Calculating stage.
- * Starts when the heart rate sensor is on 
+ * Starts when the heart rate sensor is on
  * but HRV has not yet been calculated.
  */
 function calculatingHRVMessage()
@@ -337,12 +334,12 @@ function redOutlier()
   {
     vibration.start(alertPattern);
     setTimeout(() =>  {vibration.stop()}, 3000);//Vibrate for 3 seconds
-    lastAlertTime = timestamp; 
+    lastAlertTime = timestamp;
     alertPattern = "nudge";
   }//The below code ensures that we only use haptics no more frequent than every alertTimeInterval seconds.
   else if (timestamp - lastAlertTime > alertTimeInterval)//Stops annoyance vibrations
   {
-    lastAlertTime = timestamp; 
+    lastAlertTime = timestamp;
     vibration.start(alertPattern);
   }
 
@@ -372,8 +369,8 @@ function redOutlier()
 /**
  * Changes HRVHandle's parameters
  * @param {string} color REQUIRED pass in hex parameters
- * @param {int} fontSize 
- * @param {string} text 
+ * @param {int} fontSize
+ * @param {string} text
  */
 function changeHRVLabelParameters(color, fontSize = 0, text = "")
 {
@@ -399,11 +396,11 @@ function changeHRVLabelParameters(color, fontSize = 0, text = "")
 }
 
 /**
- * 
+ *
  * Changes Background Handle's parameters
  * @param {string} color REQUIRED pass in hex parameters
- * @param {int} fontSize 
- * @param {string} text 
+ * @param {int} fontSize
+ * @param {string} text
  */
 function changeBackgroundParameters(color, fontSize = 0, text = "")
 {
@@ -429,7 +426,7 @@ function changeBackgroundParameters(color, fontSize = 0, text = "")
  * Changes Alert Window's parameters
  * @param {string} text change the text displayed
  * @param {string} color pass in hex parameters
- * @param {int} fontSize 
+ * @param {int} fontSize
  */
 function changeAlertWindowParameters(text = "", color = "", fontSize = 0)
 {
@@ -459,41 +456,44 @@ var labelMax = document.getElementById("labelMax");
 
 // Update graph every second
 setInterval(updateGraph, 1000);
-function updateGraph() 
+function updateGraph()
 {
+  if(myHRV.getLatestHRV() == 0){
+    return;
+  }
   // Display only whole numbers
-	var data = Math.round( myHRV.getLatestHRV());
+  var data = Math.round( myHRV.getLatestHRV());
   if (hrvData.length >= numPoints) {
-      hrvData.shift(); // removes first hrv data if we reach the limit of numPoints
-      hrvDataColor.shift();
+    hrvData.shift(); // removes first hrv data if we reach the limit of numPoints
+    hrvDataColor.shift();
   }
   hrvData.push(data); // stores the last hrv value at the end of the array
   hrvDataColor.push(lastOutlierStatusColor);
-  
+
   // Calculate min, max and average values of the visible data points only
   var minValue = data-1;
   var maxValue = data+1;
   hrvData.forEach(element => {
     if (element > maxValue)
-    	maxValue = element;
+      maxValue = element;
     if (element < minValue)
-    	minValue = element;
+      minValue = element;
   });
   var midValue = (minValue + maxValue) / 2;
   // Set labels to siplay the current min, max and average
   labelMin.text = minValue;
   labelMid.text = Math.round(midValue);
   labelMax.text = maxValue;
-  
+
   const startOffset = 30; // Leaver 30 pixels space for the labels
   const xstep = (graphWidth-startOffset) / numPoints; // increment for x-coordinate
-  
+
   var lastX = 0;
   var lastY = 0;
   // Update all lines to reflect the hrvData points
-  for (let index = 0; index < hrvData.length; index++) 
+  for (let index = 0; index < hrvData.length; index++)
   {
-    // vertically points are translated to stretch between min and max 
+    // vertically points are translated to stretch between min and max
     var y = 15+graphHeight*(maxValue-hrvData[index])/(maxValue-minValue);
     var x = startOffset + index*xstep;
     if (index > 0) {

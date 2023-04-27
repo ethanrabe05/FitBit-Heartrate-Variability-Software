@@ -48,7 +48,7 @@ class HRV
     */
     calculateMPB(heartRate)
     {
-       return (60000 / heartRate);//convert bpm to ms between beats
+        return (60000 / heartRate);//convert bpm to ms between beats
     }
 
     /**
@@ -62,11 +62,22 @@ class HRV
         let mean = 0;
         let current = this.heartRateListEnd;
 
+        for(let i = 0; i < N - 1; i++){
+            mean += (current.next.millisecondsPerBeat - current.millisecondsPerBeat);
+            current = current.next;
+        }
+        /*
         do
         {
             mean += current.millisecondsPerBeat;
+            // test code
+            console.log("This is current's milliseconds per beat in MRR: ")
+            console.log(current.millisecondsPerBeat);
+            console.log(i);
             current = current.next;
+            i++;
         }while(current != this.heartRateListEnd);
+        */
         // for (var i = 1; i < N; i++)
         // for (var i = 0; i < N; i++)
         // {
@@ -76,6 +87,10 @@ class HRV
 
         // mean = mean / (N - 1);
         mean = mean / N;
+
+        // test code
+        //console.log("This is mean in calculateMRR: " + mean);
+
         return mean;
     }
 
@@ -89,19 +104,46 @@ class HRV
     calculateHRVSDNN()
     {
         let N = this.heartRateListWindowSize;
-        let mean = this.calculateMRR();
-        let results = 0;
-        let current = this.heartRateListEnd;
-    
+        //console.log(N);
 
+        let mean = this.calculateMRR();
+        //console.log(mean);
+
+        let results = 0;
+        let start = this.heartRateListEnd;
+        let current = start;
+        current = current.next;
+        /*
+        while(current !== start){
+            console.log(current.next.millisecondsPerBeat - current.millisecondsPerBeat);
+            //console.log("This is current MPB in HRVSDNN: " + current.millisecondsPerBeat);
+            results += Math.pow((current.next.millisecondsPerBeat - current.millisecondsPerBeat) - mean, 2);
+            //console.log("This is results in for loop in HRVSDNN: " + results);
+            current = current.next;
+        }
+        */
+        
+        for(let i = 0; i < N - 1; i++, current = current.next){
+            //console.log("This is i: " + i);
+            //console.log("This is current MPB in HRVSDNN: " + current.millisecondsPerBeat);
+            results += Math.pow((current.next.millisecondsPerBeat - current.millisecondsPerBeat) - mean, 2);
+            //console.log("This is results in for loop in HRVSDNN: " + results);
+        }
+        
+        /*
+        let i = 1;
         do
         {
+            console.log("This is index: " + i);
+            console.log("This is current's MPB: " + current.millisecondsPerBeat);
             results = (results + Math.pow(current.millisecondsPerBeat - mean, 2));
             current = current.next;
-        }while(current != this.heartRateListEnd);
-    
+            i++;
+        }while(current != start);
+        */
         results = (results / (N - 1));      
         results = Math.sqrt(results);
+        //console.log("This is results in HRVSDNN: " + results);
         return results;
     }
 
@@ -119,20 +161,24 @@ class HRV
     * @void
     * 
     */
-    processHRV(heartRate)
+    processHRV(heartRate, timestamp)
     { 
         this.heartRateListEnd.heartRate = heartRate;
-        this.heartRateListEnd.millisecondsPerBeat = this.calculateMPB(heartRate);
+        this.heartRateListEnd.millisecondsPerBeat = timestamp;
+        //this.heartRateListEnd.millisecondsPerBeat = this.calculateMPB(heartRate); Original code
         this.heartRateListEnd = this.heartRateListEnd.next;
         
         /*Check to see if at least windowSize - 1 heart beats have been read*/
         if (this.heartRateListEnd.heartRate == 0)
         {
+            //this.heartRateListEnd = this.heartRateListEnd.next;
             //heart rate list is not full yet, can not calculate HRV yet.
             return;
         }
         
         this.currentHRV = this.calculateHRVSDNN();
+        // test code
+        console.log(this.currentHRV);
 
         if (this.HRVListEnd.heartRateVariability == 0)
         {

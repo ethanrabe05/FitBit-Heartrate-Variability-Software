@@ -2,7 +2,7 @@ class Node
 {   
     /**
     * 
-    * @param {Number} heartRate 
+    * @param {Number} heartRateVariability 
     * @param {Date} time 
     * @param {Node ref} next 
     * @param {Node ref} previous 
@@ -28,7 +28,7 @@ function generateEmptyList(listSize)
 {
     let head = new Node();
     let current = head;
-    for (var i = 1; i < listSize; i++)
+    for (var i = 1; i <= listSize; i++)
     {
         current.next = new Node();
         current.next.previous = current;
