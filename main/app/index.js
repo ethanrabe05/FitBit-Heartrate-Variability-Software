@@ -28,7 +28,7 @@ const alertWindowHandle = document.getElementById("alertWindow");
 const alertWindowTextHandle = document.getElementById("alertWindowText");
 
 const batchSeconds = 5;
-const minimumOutliersBeforeAlert = 2;
+const minimumOutliersBeforeAlert = 5;
 const mPBListSize = 30; //50 / batchSeconds; //seconds / batchsize to make window size. in this case 50 second window
 const HRVListSize = 30;
 const hrm = new HeartRateSensor({frequency: 1});
@@ -51,7 +51,7 @@ let myHRV = new hrv.HRVCalc();
 let batchCounter = 0;
 
 //move to a function
-changeAlertWindowParameters(warningMessageText);
+changeAlertWindowParameters("Current HRV Level indicates stress. Try to take a minute to remain calm.");
 
 var rootView = document.getElementById("root");
 rootView.addEventListener("click", (evt) =>
@@ -104,7 +104,7 @@ messaging.peerSocket.addEventListener("error", (err) => {
 
 function sendMessage() {
   // Sample data
-  console.log("In the send message function");
+  //console.log("In the send message function");
   /*
   let list = [];
   for(let i = 0; i < HRVListSize; i++) {
@@ -116,11 +116,7 @@ function sendMessage() {
     timestamp: myHRV.timestampList[0],
     heartrate: myHRV.HRList[0],
     currentHRV: myHRV.HRVList[0],
-    varianceList: myHRV.varianceList[0],
-    varianceMean: myHRV.varianceMean,
-    isOutlier: myHRV.OutlierStatus,
-    currentZScore: myHRV.curZScore,
-    baselineZScore: myHRV.baseLineZScore
+    isOutlier: myHRV.curOutlierStatus,
   }
 
   if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
@@ -146,8 +142,8 @@ messaging.peerSocket.onmessage = evt =>
   if (evt.data.key === "normalization" ) // changing the alert treshold
   {
     //The z-score coming in from the settings page
-    let data = (JSON.parse(evt.data.newValue)).values[0].value;
-    myHRV.baseLineZScore = data;
+    //let data = (JSON.parse(evt.data.newValue)).values[0].value;
+    //myHRV.baseLineZScore = data;
   }
   if (evt.data.key === "alertText" ) // changing the alert message
   {
@@ -273,7 +269,7 @@ function processHeartRate()
     currentOutlierStatus = myHRV.getLastOutlierStatus();
 
     //Check for green outlier zone, & no outlier in the past two readings
-    if (previousOutlierStatus == false && currentOutlierStatus == false )
+    if (previousOutlierStatus === false && currentOutlierStatus === false )
     {
       if(!(lastOutlierStatusColor === "green"))
       {
@@ -293,7 +289,7 @@ function processHeartRate()
       ridingLineOutlier();
     }
 
-    if (myHRV.getLatestHRV() == 0)
+    if (myHRV.getLatestHRV() === 0)
     {
       calculatingHRVMessage();
 

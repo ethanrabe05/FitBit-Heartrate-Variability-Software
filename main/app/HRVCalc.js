@@ -4,12 +4,7 @@ class HRVCalc{
         this.timestampList = []; // max length of 120
         this.HRList = []; // max length of 120
         this.HRVList = []; // max length of 300
-        this.varianceList = []; //max length of 300
-        this.varianceMean = 0;
-        this.variance = 0;
         this.curOutlierStatus = false;
-        this.curZScore = 0;
-        this.baselineZScore = 0;
     }
 
     calculateMRR()
@@ -89,34 +84,21 @@ class HRVCalc{
         }
         else{ //HRV list can calc outlier
             this.calculateOutlier();
-            if((this.curZScore < 3) && (this.curZScore > (this.baselineZScore * 1.1))){
-                this.updateVarianceMean();
-            }
-            this.updateVariance();
         }
     }
 
-    updateVarianceMean(){
-        this.varianceMean = ((((this.varianceMean * this.HRVList.length) - this.HRVList[0]) + this.varianceList[0]) / this.HRVList.length);
-    }
-
-    updateVariance(){
-        let sum = 0;
-        for(let i = 0; i < this.varianceList.length; i++){
-            sum += Math.pow((this.varianceList[i] - this.varianceMean), 2);
-        }
-        this.variance = (sum / (this.HRList.length));
-    }
 
     calculateOutlier(){
         this.curOutlierStatus = false;
-        if(this.variance == 0){
-            return;
+
+        let avg = 0;
+        for(let i = 0; i < 10; i++) {
+            avg += this.HRVList[i];
         }
-        this.curZScore = (this.HRVList[0] - this.varianceMean) / Math.sqrt(this.variance);
-        if(this.curZScore < this.baselineZScore){
-            this.curOutlierStatus = true;
-        }
+        avg /= 10;
+
+        this.curOutlierStatus = avg <= (2 / this.getLatestHRV());
+        return this.curOutlierStatus;
     }
 
     getLatestHRV()
