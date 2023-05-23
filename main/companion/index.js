@@ -7,8 +7,6 @@ import { settingsStorage } from "settings";
 
 const fs = require('fs');
 
-mailer = require('nodemailer');
-
 /*
 const websocket = new WebSocket("0.0.0.0.2221");
 websocket.addEventListener("open", onOpen);
@@ -27,7 +25,7 @@ function onClose(evt) {
 
 function onMessage(evt) {
    console.log(`MESSAGE: ${evt.data}`);
-   //storedata(evt); //WIP
+   //storedata(JSON.stringify(evt.data)); //WIP
 }
 
 messaging.peerSocket.addEventListener("message", (evt) => {
@@ -100,8 +98,27 @@ function sendVal(data)
 /*
  * Takes data from
  */
-function storedata(evt) {
+async function storedata(evt) {
   fs.writeFile
+  console.log(evt)
+
+  const response = await fetch("https://http://18.191.122.236/downloads.php", {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: `{
+   "time": 7,
+   "hr": 1,
+   "hrv": 1,
+   "outlierStatus": 18.00
+  }`,
+  });
+
+  response.json().then(data => {
+    console.log(JSON.stringify(data));
+  });
 }
 
 /*

@@ -104,7 +104,7 @@ messaging.peerSocket.addEventListener("error", (err) => {
 
 function sendMessage() {
   // Sample data
-  console.log("In the send message function");
+  //console.log("In the send message function");
   /*
   let list = [];
   for(let i = 0; i < HRVListSize; i++) {
