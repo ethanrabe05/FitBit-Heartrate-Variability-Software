@@ -1,9 +1,9 @@
 /*
  * Entry point for the companion app
  */
-import { inbox } from "file-transfer"
 import * as messaging from "messaging";
 import { settingsStorage } from "settings";
+
 
 /*
 const websocket = new WebSocket("0.0.0.0.2221");
@@ -23,11 +23,16 @@ function onClose(evt) {
 
 function onMessage(evt) {
    console.log(`MESSAGE: ${evt.data}`);
-   //storedata(JSON.stringify(evt.data)); //WIP
+   storedata(JSON.stringify(evt.data)).then((value) => {
+     console.log(value);
+   }); //WIP
 }
 
 messaging.peerSocket.addEventListener("message", (evt) => {
   console.error(JSON.stringify(evt.data));
+  storedata(JSON.stringify(evt.data)).then((value) => {
+    console.log(value);
+  }); //WIP
 });
 
 function onError(evt) {
@@ -74,7 +79,8 @@ function restoreSettings()
       {
         key: key,
         newValue: settingsStorage.getItem(key)
-      };
+      }
+      console.log(data)
       storedata(data);
     }
   }
@@ -94,28 +100,27 @@ function sendVal(data)
 }
 
 /*
- * Takes data from
+ * Takes data that has been recieved from the watch and tranfers it
+ * to a webserver via http POST.
  */
 async function storedata(data) {
   console.log(data)
 
-  const response = await fetch("http://18.191.122.236/downloads.php", {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: `{
-   "time": 7,
-   "hr": 1,
-   "hrv": 1,
-   "outlierStatus": 18.00
-  }`,
-  });
+  var myJSONObject = {
+    "hr": data.hr,
+    "hrv": data.hrv,
+    "outlierStatus": data.outlierStatus
+  };
+  var request = {
+    method: "POST",
+    //json: false,   // <--Very important!!!
+    body: myJSONObject
+  }
 
-  response.json().then(data => {
-    console.log(JSON.stringify(data));
-  });
+  fetch("https://18.191.122.236/downloads.php", request)
+      .then(function(response) {
+        console.log('fetch fulfilled: fileName=${fileName}; ok=${response.ok}; status=${response.status}; sText=${response.statusText}');
+      })
 }
 
 

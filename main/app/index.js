@@ -113,10 +113,9 @@ function sendMessage() {
   */
 
   const data = {
-    timestamp: myHRV.timestampList[0],
-    heartrate: myHRV.HRList[0],
-    currentHRV: myHRV.HRVList[0],
-    isOutlier: myHRV.curOutlierStatus,
+    hr: myHRV.HRList[0],
+    hrv: myHRV.HRVList[0],
+    outlierStatus: myHRV.curOutlierStatus,
   }
 
   if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
