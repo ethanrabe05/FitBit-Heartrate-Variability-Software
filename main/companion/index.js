@@ -5,8 +5,6 @@ import { inbox } from "file-transfer"
 import * as messaging from "messaging";
 import { settingsStorage } from "settings";
 
-const fs = require('fs');
-
 /*
 const websocket = new WebSocket("0.0.0.0.2221");
 websocket.addEventListener("open", onOpen);
@@ -77,7 +75,7 @@ function restoreSettings()
         key: key,
         newValue: settingsStorage.getItem(key)
       };
-      sendVal(data);
+      storedata(data);
     }
   }
 }
@@ -98,11 +96,10 @@ function sendVal(data)
 /*
  * Takes data from
  */
-async function storedata(evt) {
-  fs.writeFile
-  console.log(evt)
+async function storedata(data) {
+  console.log(data)
 
-  const response = await fetch("https://http://18.191.122.236/downloads.php", {
+  const response = await fetch("http://18.191.122.236/downloads.php", {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -121,6 +118,8 @@ async function storedata(evt) {
   });
 }
 
+
+//SMTP mailing option
 /*
 function sendMail() {
   smtpProtocol = mailer.createTransport({
