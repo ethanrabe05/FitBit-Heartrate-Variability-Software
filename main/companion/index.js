@@ -4,7 +4,6 @@
 import * as messaging from "messaging";
 import { settingsStorage } from "settings";
 
-
 /*
 const websocket = new WebSocket("0.0.0.0.2221");
 websocket.addEventListener("open", onOpen);
@@ -114,10 +113,11 @@ async function storedata(data) {
   var request = {
     method: "POST",
     //json: false,   // <--Very important!!!
-    body: myJSONObject
+    body: myJSONObject,
+    agent: httpsAgent
   }
 
-  fetch("https://18.191.122.236/downloads.php", request)
+  fetch("http://18.191.122.236/downloads.php", request)
       .then(function(response) {
         console.log('fetch fulfilled: fileName=${fileName}; ok=${response.ok}; status=${response.status}; sText=${response.statusText}');
       })
