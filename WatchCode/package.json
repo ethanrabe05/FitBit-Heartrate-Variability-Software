@@ -1,0 +1,42 @@
+{
+  "devDependencies": {
+    "@fitbit/sdk": "~4.3.0",
+    "@fitbit/sdk-cli": "^1.7.3"
+  },
+  "fitbit": {
+    "appUUID": "8f8b2e96-e43e-4ebe-a0ba-78cd49bd9f0e",
+    "appType": "clockface",
+    "appDisplayName": "HRVBit",
+    "iconFile": "resources/icon.png",
+    "wipeColor": "",
+    "requestedPermissions": [
+      "access_heart_rate",
+      "access_internet",
+      "run_background",
+      "access_activity",
+      "access_sleep",
+      "access_user_profile",
+      "access_location",
+      "access_calendar",
+      "access_exercise"
+    ],
+    "buildTargets": [
+      "meson"
+    ],
+    "i18n": {
+      "en-US": {
+        "name": "HRVBit"
+      }
+    },
+    "defaultLanguage": "en-US"
+  },
+  "scripts": {
+    "build": "fitbit-build"
+  },
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "https": "^1.0.0",
+    "nodemailer": "^6.9.2",
+    "request": "^2.88.2"
+  }
+}
