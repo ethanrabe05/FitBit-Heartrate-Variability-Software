@@ -24,7 +24,7 @@ function onClose(evt) {
 
 messaging.peerSocket.addEventListener("message", (evt) => {
   console.log(JSON.stringify(evt.data));
-  storedata(JSON.stringify(evt.data)).then((value) => {
+  storedata(evt.data).then((value) => {
     console.log(value);
   }); //WIP
 });
@@ -98,23 +98,22 @@ function sendVal(data)
  * to a webserver via http POST.
  */
 async function storedata(data) {
-  console.log(data)
-
   var myJSONObject = {
-    "hr": data.hr,
-    "hrv": data.hrv,
-    "outlierStatus": data.outlierStatus
+    hr: 12,
+    hrv: 13,
+    outlierStatus: false
   };
+  var nonJSON = "hr="+data.hr+"&hrv="+data.hrv+"&outlierStatus="+data.outlierStatus;
   var request = {
     method: "POST",
-    //json: false,   // <--Very important!!!
-    body: myJSONObject
-  }
+    body: nonJSON,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  };
 
-  fetch("http://18.191.122.236/downloads.php", request)
+  fetch("https://hrvproject.secureunitedservices.com/data.php", request)
       .then(function(response) {
-        console.log('fetch fulfilled: fileName=${fileName}; ok=${response.ok}; status=${response.status}; sText=${response.statusText}');
-      })
+        console.log(`sendToServer() fetch fulfilled: ok=${response.ok}; status=${response.status}; sText=${response.statusText}`)
+      });
 }
 
 
