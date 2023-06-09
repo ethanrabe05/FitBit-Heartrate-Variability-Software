@@ -12,12 +12,6 @@ class HRVCalc{
         let N = this.HRList.length;
         let sum = 0;
 
-        /*for(let i = 0; i < this.timestampList.length - 1; i++) {
-            sum += (this.timestampList[i] - this.timestampList[i+1]);
-        }*/
-        /*for(let i = 0; i < this.timestampList.length - 1; i++) {
-            sum += ((this.timestampList[i] - this.timestampList[i+1]) + 60000/this.HRList[i]) / 2;
-        }*/
         this.HRList.forEach(i => sum += (60000 / i));
 
         return sum / N;
@@ -36,8 +30,6 @@ class HRVCalc{
 
         for(let i = 0; i < N - 1; i+=5){
             count = 0;
-            //console.log(this.timestampList[i+1] - this.timestampList[i]);
-            //results += Math.pow((this.timestampList[i] - this.timestampList[i+1]) - mean, 2);
             if(i + 5 <= N - 1) {
                 for(let j = i; j < i + 5 && j < N - 1; j++) {
                     hravg += this.HRList[j];
@@ -46,13 +38,13 @@ class HRVCalc{
                 console.log(hravg);
                 results += Math.pow((60000 / hravg) - mean, 2);
             }
-            //results += Math.pow((((this.timestampList[i] - this.timestampList[i+1]) + 60000/this.HRList[i]) / 2) - mean, 2);
         }
 
         results = (results / (N));
         return Math.sqrt(results);
     }
 
+    //adds heart rate, timestamp of reading, and HRV to beginning of respective array.
     processHRV(heartRate, timestamp)
     {
         console.log(this.HRList.length);
@@ -61,9 +53,7 @@ class HRVCalc{
             this.HRList.pop();
         }
 
-        //console.log(timestamp);
         this.timestampList.unshift(timestamp);
-        //console.log(this.timestampList[0] - this.timestampList[1]);
         if(this.timestampList.length > 300) {
             this.timestampList.pop();
         }
@@ -87,7 +77,7 @@ class HRVCalc{
         }
     }
 
-
+    //Sends a notification to user when HRV is .5 of HRV of last 10 seconds
     calculateOutlier(){
         this.curOutlierStatus = false;
 
@@ -96,11 +86,12 @@ class HRVCalc{
             avg += this.HRVList[i];
         }
         avg /= 10;
-
-        this.curOutlierStatus = avg <= (2 / this.getLatestHRV());
+        //Change .5 to different value to change desired notification threshold
+        this.curOutlierStatus = avg <= (this.getLatestHRV() * .5); 
         return this.curOutlierStatus;
     }
 
+    //The most recent calculated HRV value will be the one at the beginning of the list
     getLatestHRV()
     {
         return this.HRVList[0];
